@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancake Race Data Visualisation</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Roboto+Slab:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FFA726;
+            --secondary: #EF6C00;
+            --accent: #FFD54F;
+            --dark: #4E342E;
+            --light: #FFF8E1;
+        }
+
+        body {
+            font-family: 'Roboto Slab', serif;
+            background: linear-gradient(135deg, #fff1e6 0%, #ffe4c4 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        .header {
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            padding: 2rem;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -10%;
+            width: 120%;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(-3deg);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .team {
+            display: flex;
+            justify-content: space-around;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .member-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            flex: 1;
+            min-width: 250px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .member-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .link-container {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .link-button {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .link-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .link-button i {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            width: 40px;
+            text-align: center;
+        }
+
+        .pancake-animation {
+            text-align: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .floating-pancake {
+            width: 150px;
+            height: 150px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .floating-pancake::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 70%;
+            height: 70%;
+            background: linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.3) 100%);
+            border-radius: 50%;
+        }
+
+        .dripping-butter {
+            position: absolute;
+            width: 40px;
+            height: 60px;
+            background: var(--accent);
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 20px 20px 50% 50%;
+            animation: drip 2s infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes drip {
+            0% {
+                transform: translateX(-50%) scaleY(1);
+            }
+
+            50% {
+                transform: translateX(-50%) scaleY(1.2) scaleX(0.9);
+            }
+
+            100% {
+                transform: translateX(-50%) scaleY(1);
+            }
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            font-size: 2.5rem;
+            text-align: center;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .member-card {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>🥞 Pancake Race Analytics</h1>
+        <div class="pancake-animation">
+            <div class="floating-pancake"></div>
+            <div class="dripping-butter"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="team">
+            <div class="member-card">
+                <h3>Arihant Tripathy</h3>
+                <p>2023111026</p>
+                <strong>Visualization 1: Wins Comparison</strong>
+                <p>Historical performance analysis</p>
+            </div>
+            <div class="member-card">
+                <h3>Akshat Srivastava</h3>
+                <p>2023111020</p>
+                <strong>Visualization 2: Yearly Winners</strong>
+                <p>Temporal evolution of champions</p>
+            </div>
+            <div class="member-card">
+                <h3>Aryan Maskara</h3>
+                <p>2023111004</p>
+                <strong>Visualization 3: Race Route & Schedule</strong>
+                <p>Geospatial & temporal mapping</p>
+            </div>
+        </div>
+
+        <div class="link-container">
+            <a href="1.html" class="link-button">
+                <i class="fas fa-trophy"></i>
+                <div>
+                    <h3>Visualisation 1 by Arihant</h3>
+                    <p>Comparative performance metrics across teams</p>
+                </div>
+            </a>
+            <a href="2.html" class="link-button">
+                <i class="fas fa-chart-line"></i>
+                <div>
+                    <h3>Visualisation 2 by Akshat</h3>
+                    <p>Historical winner progression timeline</p>
+                </div>
+            </a>
+            <a href="3.html" class="link-button">
+                <i class="fas fa-map-marked-alt"></i>
+                <div>
+                    <h3>Visualisation 3 by Aryan</h3>
+                    <p>Interactive route mapping & schedule analysis</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>
