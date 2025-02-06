@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pancake Race Map</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #map {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="map" width="800" height="650" style="border: 1px solid black;"></svg>
+    <script>
+        const path = [
+            { x: 50, y: 570, alpha: 0.2 },
+            { x: 270, y: 620, alpha: 0.2 },
+            { x: 440, y: 550, alpha: 0.2 },
+            { x: 500, y: 270, alpha: 0.2 },
+            { x: 700, y: 250, alpha: 0.2 }
+        ];
+
+        const arrowsOnPath = [
+            { x: 140, y: 601, tilt: 30 },
+            { x: 230, y: 620, tilt: 15 },
+            { x: 350, y: 609, tilt: -15 },
+            { x: 425, y: 557, tilt: -160 },
+            { x: 473, y: 370, tilt: -80 },
+            { x: 590, y: 245, tilt: 0 }
+        ];
+
+        const circleCentre = { x: 720, y: 80, radius: 50 };
+
+        const directions = [
+            { label: "E", angle: 0 },
+            { label: "S", angle: 90 },
+            { label: "W", angle: 180 },
+            { label: "N", angle: 270 }
+        ];
+
+        const endpoints = [
+            { x1: 50, y1: 560, x2: 50, y2: 580 },
+            { x1: 700, y1: 240, x2: 700, y2: 260 }
+        ];
+
+        const mapPoints = [
+            { x1: 100, y1: 575, x2: 98, y2: 595, color: "#32CD32" },
+            { x1: 200, y1: 602, x2: 199, y2: 622, color: "#F28C28" },
+            { x1: 300, y1: 607, x2: 301, y2: 627, color: "#0096FF" },
+            { x1: 400, y1: 575, x2: 405, y2: 595, color: "#FF69B4" },
+            { x1: 458, y1: 420, x2: 478, y2: 420, color: "#FF69B4" },
+            { x1: 480, y1: 275, x2: 500, y2: 290, color: "#F28C28" },
+            { x1: 485, y1: 270, x2: 505, y2: 285, color: "#32CD32" },
+            { x1: 605, y1: 233, x2: 605, y2: 253, color: "#0096FF" },
+        ];
+
+        const timeDescriptions = [
+            { x: 85, y: 615, text: "8:00" },
+            { x: 175, y: 640, text: "10:00" },
+            { x: 280, y: 645, text: "10:45" },
+            { x: 420, y: 595, text: "11:00" },
+            { x: 485, y: 425, text: "12:00" },
+            { x: 505, y: 290, text: "13:00" },
+            { x: 580, y: 230, text: "18:45" }
+        ];
+
+        const legendEntries = [
+            { stroke: "none", fill: "none", text: "Legend" },
+            { stroke: "none", fill: "none", text: "Event Time Points" },
+            { stroke: "black", fill: "white", text: "Event start time" },
+            { stroke: "black", fill: "black", text: "Event end time" },
+            { stroke: "none", fill: "none", text: "Event Descriptions" },
+            { stroke: "#FF69B4", fill: "#FF69B4", text: "Main race" },
+            { stroke: "#32CD32", fill: "#32CD32", text: "Food stalls and showcases" },
+            { stroke: "#F28C28", fill: "#F28C28", text: "Children's events" },
+            { stroke: "#0096FF", fill: "#0096FF", text: "Other events" },
+            { stroke: "black", fill: "none", text: "Race track" }
+        ];
+
+        const greenEntries = [
+            { startTime: "08:00", endTime: "09:15", text: "Pancake Breakfast in the Olney Meadows Care" },
+            { startTime: "", endTime: "", text: "Home Marquee on the Market Place" },
+            { startTime: "09:00", endTime: "13:00", text: "Hot Pancakes, tea & coffee, and stalls in the" },
+            { startTime: "", endTime: "", text: "Market Place" },
+            { startTime: "10:00", endTime: "13:00", text: "Hot Pancakes, tea & coffee plus stalls in the" },
+            { startTime: "", endTime: "", text: "Church Hall" }
+        ];
+
+        const orangeEntries = [
+            { startTime: "10:00", endTime: "", text: "Children’s Entertainment in the Market Place" },
+            { startTime: "10:00", endTime: "13:00", text: "Children’s Races on the north side of the" },
+            { startTime: "", endTime: "", text: "Market Place" }
+        ];
+
+        const blueEntries = [
+            { startTime: "10:45", endTime: "11:30", text: "Cookery demonstration in the Marquee on the" },
+            { startTime: "", endTime: "", text: "Market Place" },
+            { startTime: "12:15", endTime: "", text: "Shriving Service in St Peter & St Paul’s Church" },
+            { startTime: "18:45", endTime: "", text: "Prize distribution and drawing of the raffle" }
+        ];
+
+        const pinkEntries = [
+            { startTime: "11:00", endTime: "11:45", text: "Runners for the Olney Pancake Race assemble" },
+            { startTime: "", endTime: "", text: "and register in the Marquee" },
+            { startTime: "11:55", endTime: "", text: "Olney Pancake Race starts" },
+            { startTime: "12:00", endTime: "", text: "Olney Pancake Race finishes" }
+        ];
+
+        const allEntries = [
+            { color: "#FF69B4", title: "Main Race", data: pinkEntries },
+            { color: "#32CD32", title: "Food Stalls and Showcases", data: greenEntries },
+            { color: "#F28C28", title: "Children's Events", data: orangeEntries },
+            { color: "#0096FF", title: "Other Events", data: blueEntries }
+        ];
+
+        const svg = d3.select("#map");
+        const createLineGenerator = (alpha) =>
+            d3.line()
+                .x((p) => p.x)
+                .y((p) => p.y)
+                .curve(d3.curveCatmullRom.alpha(alpha));
+        const lineGen = createLineGenerator(path[0].alpha);
+
+        // append everything to svg
+
+        // add heading
+        svg.append("text")
+            .attr("x", 220)
+            .attr("y", 30)
+            .attr("font-size", "24px")
+            .attr("fill", "black")
+            .attr("font-weight", "bold")
+            .text("Race Track and Event Timeline");
+
+        // append map route
+        svg.append("path")
+            .attr("d", lineGen(path))
+            .attr("stroke", "black")
+            .attr("stroke-width", 4)
+            .attr("fill", "none");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // CIRCLES (HOLLOW and SPHERE)
+        // append start and end points
+        endpoints.forEach((e, i) => {
+            svg.append("image")
+                .attr("x", i === 0 ? e.x1 - 70 : e.x1)
+                .attr("y", (i === 0) ? e.y1 : e.y1 - 45)
+                .attr("width", i === 0 ? 100 : 45)
+                .attr("height", i === 0 ? 100 : 45)
+                .attr("href", i === 0 ? "start-flag.svg" : "end-flag.svg")
+                .attr("opacity", 0)
+                .transition() // Initialize transition
+                .delay(i === 0 ? (e.x1 - 70) * 2 : e.x1 * 2) // Add delay for sequential appearance
+                .duration(1000) // Animation duration in milliseconds
+                .attr("opacity", 1); // Fade to fully visible
+
+        });
+
+        // Group the points by color
+        const colorGroups = d3.group(mapPoints, d => d.color);
+
+        // Iterate through the groups and plot circles
+        colorGroups.forEach((points, color) => {
+            points.forEach((point, index) => {
+                const isHollow = index === 0; // First instance is hollow
+                const circle = svg.append("circle")
+                    .attr("cx", (point.x1 + point.x2) / 2) // Average x for circle center
+                    .attr("cy", (point.y1 + point.y2) / 2) // Average y for circle center
+                    .attr("r", 7) // Radius of the circle
+                    .attr("fill", isHollow ? "white" : color) // Hollow (none) or solid (color)
+                    .attr("stroke", color) // Outline color
+                    .attr("stroke-width", 2)
+                    .attr("opacity", 0);
+
+                circle.transition()
+                    .delay(point.x1 + point.x2) // Add delay for sequential appearance
+                    .duration(1000) // Animation duration in milliseconds
+                    .attr("opacity", 1); // Fade to fully visible
+
+                circle.on("mouseover", function () {
+                    // Expand the hovered circle
+                    d3.select(this)
+                        .transition()
+                        .duration(300)
+                        .attr("r", 10); // Increase radius on hover
+
+                    // Expand all circles of the same color
+                    svg.selectAll("circle")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                        .transition()
+                        .duration(300)
+                        .attr("r", 10); // Increase size of all circles of the same color
+
+                    // Expand graph elements associated with the color
+                    svg.selectAll("rect")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .attr("width", d3.select(this).attr("width") * 30 / 29) // Increase width by 20%
+                                .attr("height", d3.select(this).attr("height") * 30 / 29); // Increase height by 20%
+                        });
+                    svg.selectAll("text")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .transition() // Apply transition
+                                .duration(300) // Animation duration
+                                .attr("x", function () {
+                                    return d3.select(this).attr("x") * 30 / 29;
+                                })
+                                .attr("y", function () {
+                                    return d3.select(this).attr("y") * 30 / 29;
+                                });
+
+                            // Apply font-size change separately (only if it's a <text> element)
+                            if (this.tagName === "text") {
+                                d3.select(this)
+                                    .transition()
+                                    .duration(300)
+                                    .attr("font-size", function () {
+                                        return d3.select(this).attr("font-size") === "16px" ? "17px" : "15px";
+                                    });
+                            }
+                        });
+                    svg.selectAll("image")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .transition()
+                                .duration(300)
+                                .attr("x", function () {
+                                    return parseFloat(d3.select(this).attr("x")) + 10;
+                                })
+                        });
+                });
+                circle.on("mouseout", function () {
+                    // Restore the hovered circle
+                    d3.select(this)
+                        .transition()
+                        .duration(300)
+                        .attr("r", 7); // Restore original size
+
+                    // Restore all circles of the same color
+                    svg.selectAll("circle")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                        .transition()
+                        .duration(300)
+                        .attr("r", 7); // Restore original size
+
+                    //     // Restore graph elements
+                    svg.selectAll("rect")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .attr("width", d3.select(this).attr("width") * 29 / 30) // Decrease width by 20%
+                                .attr("height", d3.select(this).attr("height") * 29 / 30); // Decrease height by 20%
+                        });
+                    svg.selectAll("text")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .transition() // Apply transition
+                                .duration(300) // Animation duration
+                                .attr("x", function () {
+                                    return d3.select(this).attr("x") * 29 / 30;
+                                })
+                                .attr("y", function () {
+                                    return d3.select(this).attr("y") * 29 / 30;
+                                });
+
+                            // Apply font-size change separately (only if it's a <text> element)
+                            if (this.tagName === "text") {
+                                d3.select(this)
+                                    .transition()
+                                    .duration(300)
+                                    .attr("font-size", function () {
+                                        return d3.select(this).attr("font-size") === "17px" ? "16px" : "14px";
+                                    });
+                            }
+                        });
+                    svg.selectAll("image")
+                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                        .transition()
+                        .duration(300)
+                        .each(function () {
+                            d3.select(this)
+                                .transition()
+                                .duration(300)
+                                .attr("x", function () {
+                                    return parseFloat(d3.select(this).attr("x")) - 10;
+                                })
+                        });
+                });
+            });
+        });
+
+        // Add text descriptions for each time point
+        timeDescriptions.forEach(d => {
+            svg.append("text")
+                .attr("x", d.x)
+                .attr("y", d.y)
+                .attr("font-size", "16px")
+                .attr("fill", "black")
+                .text(d.text)
+                .attr("opacity", 0)
+                .transition() // Initialize transition
+                .delay(d.x * 2) // Add delay for sequential appearance
+                .duration(1000) // Animation duration in milliseconds
+                .attr("opacity", 1); // Fade to fully visible
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ADD PLACES
+
+        // Add St Peter and St Paul
+        svg.append("rect")
+            .attr("x", 710)
+            .attr("y", 250)
+            .attr("width", 40)
+            .attr("height", 40)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(710 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+        svg.append("text")
+            .attr("x", 722)
+            .attr("y", 280)
+            .attr("font-size", "32px")
+            .attr("fill", "black")
+            .attr("font-weight", "bold")
+            .text("\u271D")
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(722 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+        svg.append("text")
+            .attr("x", 675)
+            .attr("y", 305)
+            .attr("font-size", "12px")
+            .attr("fill", "black")
+            .text("St Peter and St Paul")
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(675 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+        // Add Marquee Place
+        svg.append("rect")
+            .attr("x", 120)
+            .attr("y", 540)
+            .attr("width", 150)
+            .attr("height", 40)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(120 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+
+        svg.append("text")
+            .attr("x", 132)
+            .attr("y", 562)
+            .attr("font-size", "12px")
+            .attr("fill", "black")
+            .text("Marquee (Market Place)")
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(132 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+        // Add Church Hall
+        svg.append("rect")
+            .attr("x", 500)
+            .attr("y", 330)
+            .attr("width", 80)
+            .attr("height", 40)
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(500 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+        svg.append("text")
+            .attr("x", 508)
+            .attr("y", 352)
+            .attr("font-size", "12px")
+            .attr("fill", "black")
+            .text("Church Hall")
+            .attr("opacity", 0)
+            .transition() // Initialize transition
+            .delay(508 * 2) // Add delay for sequential appearance
+            .duration(1000) // Animation duration in milliseconds
+            .attr("opacity", 1); // Fade to fully visible
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // COMPASS
+        // ------------------------------------------------------
+
+        // Create compass outer circle gradient
+        const compassGradient = svg.append("defs")
+            .append("radialGradient")
+            .attr("id", "compassGradient")
+            .attr("cx", "50%")
+            .attr("cy", "50%")
+            .attr("r", "50%");
+
+        compassGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("style", "stop-color:#f0f0f0;stop-opacity:1");
+
+        compassGradient.append("stop")
+            .attr("offset", "85%")
+            .attr("style", "stop-color:#d0d0d0;stop-opacity:1");
+
+        compassGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("style", "stop-color:#a0a0a0;stop-opacity:1");
+
+        // Append compass outer circle
+        svg.append("circle")
+            .attr("cx", circleCentre.x)
+            .attr("cy", circleCentre.y)
+            .attr("r", circleCentre.radius)
+            .attr("fill", "url(#compassGradient)")
+            .attr("stroke", "#404040")
+            .attr("stroke-width", 3)
+            .classed("compass", true);
+
+        // Inner circle for decoration
+        svg.append("circle")
+            .attr("cx", circleCentre.x)
+            .attr("cy", circleCentre.y)
+            .attr("r", circleCentre.radius * 0.8)
+            .attr("fill", "none")
+            .attr("stroke", "#606060")
+            .attr("stroke-width", 1)
+            .classed("compass", true);
+
+        // Compass rose lines
+        const allDirections = [
+            { label: "E", angle: 270, main: true },
+            { label: "SE", angle: 315, main: false },
+            { label: "S", angle: 0, main: true },
+            { label: "SW", angle: 45, main: false },
+            { label: "W", angle: 90, main: true },
+            { label: "NW", angle: 135, main: false },
+            { label: "N", angle: 180, main: true },
+            { label: "NE", angle: 225, main: false }
+        ];
+
+        // Draw direction lines
+        allDirections.forEach(d => {
+            const angleRad = (d.angle) * Math.PI / 180;
+            const outerRadius = circleCentre.radius * (d.main ? 0.95 : 0.85);
+            const innerRadius = circleCentre.radius * 0.2;
+
+            // Direction lines
+            svg.append("line")
+                .attr("x1", circleCentre.x + Math.cos(angleRad) * innerRadius)
+                .attr("y1", circleCentre.y + Math.sin(angleRad) * innerRadius)
+                .attr("x2", circleCentre.x + Math.cos(angleRad) * outerRadius)
+                .attr("y2", circleCentre.y + Math.sin(angleRad) * outerRadius)
+                .attr("stroke", d.main ? "#404040" : "#707070")
+                .attr("stroke-width", d.main ? 2 : 1);
+
+            // Direction labels
+            const labelRadius = circleCentre.radius * 1.22;
+            const fontSize = d.main ? "14px" : "12px";
+            const fontWeight = d.main ? "bold" : "normal";
+            const labelColor = d.main ? "#404040" : "#606060";
+
+            svg.append("text")
+                .attr("x", circleCentre.x + Math.cos(angleRad) * labelRadius)
+                .attr("y", circleCentre.y + Math.sin(angleRad) * labelRadius)
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle")
+                .attr("font-size", fontSize)
+                .attr("font-weight", fontWeight)
+                .attr("fill", labelColor)
+                .text(d.label);
+        });
+
+        // North pointer triangle
+        const northArrow = [
+            { x: circleCentre.x, y: circleCentre.y - circleCentre.radius * 0.8 },
+            { x: circleCentre.x - circleCentre.radius * 0.15, y: circleCentre.y - circleCentre.radius * 0.3 },
+            { x: circleCentre.x + circleCentre.radius * 0.15, y: circleCentre.y - circleCentre.radius * 0.3 }
+        ];
+
+        // Create gradient for north pointer
+        const arrowGradient = svg.append("defs")
+            .append("linearGradient")
+            .attr("id", "arrowGradient")
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%");
+
+        arrowGradient.append("stop")
+            .attr("offset", "0%")
+            .attr("style", "stop-color:#ff4040;stop-opacity:1");
+
+        arrowGradient.append("stop")
+            .attr("offset", "100%")
+            .attr("style", "stop-color:#ff8080;stop-opacity:1");
+
+        // Draw north pointer
+        svg.append("path")
+            .attr("d", `M ${northArrow[0].x},${northArrow[0].y} 
+         L ${northArrow[1].x},${northArrow[1].y} 
+         L ${northArrow[2].x},${northArrow[2].y} Z`)
+            .attr("fill", "url(#arrowGradient)")
+            .attr("stroke", "#802020")
+            .attr("stroke-width", 1.5)
+            .attr("transform", `rotate(-90, ${circleCentre.x}, ${circleCentre.y})`)
+
+        // Center dot
+        svg.append("circle")
+            .attr("cx", circleCentre.x)
+            .attr("cy", circleCentre.y)
+            .attr("r", 4)
+            .attr("fill", "#404040")
+            .attr("stroke", "#202020")
+            .attr("stroke-width", 1)
+            .classed("compass");
+
+        // ------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+        // LEGEND
+
+
+        // Define the legend container
+        const legendTable = svg.append("g")
+            .attr("transform", "translate(570, 390)"); // Position the legend
+
+        // Draw the border of the legend as a table
+        legendTable.append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", 230)
+            .attr("height", legendEntries.length * 25 + 10) // Adjust height based on the number of entries
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+        // Add legend entries
+        legendEntries.forEach((entry, i) => {
+            const yPosition = i * 25 + 20; // Vertical spacing between rows
+
+            if (entry.fill === "none" && entry.stroke === "none") {
+                // Center-align text and add a horizontal line
+                legendTable.append("text")
+                    .attr("x", 115) // Center horizontally within the table
+                    .attr("y", yPosition)
+                    .attr("text-anchor", "middle")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .attr("font-weight", "bold")
+                    .text(entry.text);
+
+                legendTable.append("line")
+                    .attr("x1", 10)
+                    .attr("x2", 220) // Spanning the table width
+                    .attr("y1", yPosition + 5)
+                    .attr("y2", yPosition + 5)
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 0.5);
+            } else {
+                // Add color indicator and event description
+                if (entry.text === "Race track") {
+                    // Add a black line for the race track
+                    legendTable.append("line")
+                        .attr("x1", 20)
+                        .attr("x2", 40)
+                        .attr("y1", yPosition - 5)
+                        .attr("y2", yPosition - 5)
+                        .attr("stroke", entry.stroke)
+                        .attr("stroke-width", 3);
+                } else {
+                    // Add a circle (hollow or filled) for other entries
+                    legendTable.append("circle")
+                        .attr("cx", 30)
+                        .attr("cy", yPosition - 5)
+                        .attr("r", 6)
+                        .attr("fill", entry.fill)
+                        .attr("stroke", entry.stroke)
+                        .attr("stroke-width", (entry.fill === "black") ? 0 : 2)
+                        .on("mouseover", function () {
+                            let color = d3.select(this).attr("stroke"); // Get the fill color
+                            if (color === "black") {
+                                let internal = d3.select(this).attr("fill");
+                                if (internal === "black") {
+                                    svg.selectAll("circle")
+                                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("fill") !== "white" && !d3.select(nodes[i]).classed("compass") && d3.select(nodes[i]).attr("stroke") !== "#202020")
+                                        .transition()
+                                        .duration(300)
+                                        .each(function () {
+                                            d3.select(this)
+                                                .attr("r", 10);
+                                        });
+                                }
+                                else {
+                                    svg.selectAll("circle")
+                                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("fill") === "white" && !d3.select(nodes[i]).classed("compass") && d3.select(nodes[i]).attr("stroke") !== "#202020")
+                                        .transition()
+                                        .duration(300)
+                                        .each(function () {
+                                            d3.select(this)
+                                                .attr("r", 10);
+                                        });
+                                }
+                                return;
+                            }
+
+                            // Select all circles with the same color and increase their radius
+                            svg.selectAll("circle")
+                                .filter(function () {
+                                    return d3.select(this).attr("stroke") === color;
+                                })
+                                .transition()
+                                .duration(300)
+                                .attr("r", 10);
+                            // Expand graph elements associated with the color
+                            svg.selectAll("rect")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .attr("width", d3.select(this).attr("width") * 30 / 29) // Increase width by 20%
+                                        .attr("height", d3.select(this).attr("height") * 30 / 29); // Increase height by 20%
+                                });
+                            svg.selectAll("text")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .transition() // Apply transition
+                                        .duration(300) // Animation duration
+                                        .attr("x", function () {
+                                            return d3.select(this).attr("x") * 30 / 29;
+                                        })
+                                        .attr("y", function () {
+                                            return d3.select(this).attr("y") * 30 / 29;
+                                        });
+
+                                    // Apply font-size change separately (only if it's a <text> element)
+                                    if (this.tagName === "text") {
+                                        d3.select(this)
+                                            .transition()
+                                            .duration(300)
+                                            .attr("font-size", function () {
+                                                return d3.select(this).attr("font-size") === "16px" ? "17px" : "15px";
+                                            });
+                                    }
+                                });
+                            svg.selectAll("image")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .transition()
+                                        .duration(300)
+                                        .attr("x", function () {
+                                            return parseFloat(d3.select(this).attr("x")) + 10;
+                                        })
+                                });
+                        })
+                        .on("mouseout", function () {
+                            let color = d3.select(this).attr("stroke"); // Get the fill color
+                            if (color === "black") {
+                                let internal = d3.select(this).attr("fill");
+                                if (internal === "black") {
+                                    svg.selectAll("circle")
+                                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("fill") !== "white" && !d3.select(nodes[i]).classed("compass") && d3.select(nodes[i]).attr("stroke") !== "#202020")
+                                        .transition()
+                                        .duration(300)
+                                        .each(function () {
+                                            d3.select(this)
+                                                .attr("r", 6);
+                                        });
+                                }
+                                else {
+                                    svg.selectAll("circle")
+                                        .filter((_, i, nodes) => d3.select(nodes[i]).attr("fill") === "white" && !d3.select(nodes[i]).classed("compass") && d3.select(nodes[i]).attr("stroke") !== "#202020")
+                                        .transition()
+                                        .duration(300)
+                                        .each(function () {
+                                            d3.select(this)
+                                                .attr("r", 6);
+                                        });
+                                }
+                                return;
+                            }
+
+                            // Reset all circles with the same color back to normal
+                            svg.selectAll("circle")
+                                .filter(function () {
+                                    return d3.select(this).attr("stroke") === color;
+                                })
+                                .transition()
+                                .duration(300)
+                                .attr("r", 6);
+                            svg.selectAll("rect")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("stroke") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .attr("width", d3.select(this).attr("width") * 29 / 30) // Decrease width by 20%
+                                        .attr("height", d3.select(this).attr("height") * 29 / 30); // Decrease height by 20%
+                                });
+                            svg.selectAll("text")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .transition() // Apply transition
+                                        .duration(300) // Animation duration
+                                        .attr("x", function () {
+                                            return d3.select(this).attr("x") * 29 / 30;
+                                        })
+                                        .attr("y", function () {
+                                            return d3.select(this).attr("y") * 29 / 30;
+                                        });
+
+                                    // Apply font-size change separately (only if it's a <text> element)
+                                    if (this.tagName === "text") {
+                                        d3.select(this)
+                                            .transition()
+                                            .duration(300)
+                                            .attr("font-size", function () {
+                                                return d3.select(this).attr("font-size") === "17px" ? "16px" : "14px";
+                                            });
+                                    }
+                                });
+                            svg.selectAll("image")
+                                .filter((_, i, nodes) => d3.select(nodes[i]).attr("background-color") === color)
+                                .transition()
+                                .duration(300)
+                                .each(function () {
+                                    d3.select(this)
+                                        .transition()
+                                        .duration(300)
+                                        .attr("x", function () {
+                                            return parseFloat(d3.select(this).attr("x")) - 10;
+                                        })
+                                });
+                        });
+
+                }
+
+                // Add the description text
+                legendTable.append("text")
+                    .attr("x", 50) // Position text to the right of the circle/line
+                    .attr("y", yPosition)
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .text(entry.text);
+            }
+        });
+
+
+
+
+
+
+
+        // TABLES
+
+
+        let xPos = 5; // Starting X position
+        let yPos = 55; // Starting Y position
+        const tableWidth = 400; // Fixed table width
+        const rowHeight = 20; // Height of each row
+        const headingHeight = 30; // Height for the table heading
+        const spacing = 5; // Space between tables
+
+        // Iterate over all categories to create individual tables
+        allEntries.forEach((category, tableIndex) => {
+            // Calculate table height based on the number of rows
+            const tableHeight = category.data.length * rowHeight + headingHeight;
+
+            // Create table group
+            const tableGroup = svg.append("g")
+                .attr("transform", `translate(${xPos}, ${yPos})`);
+
+            // Table border
+            tableGroup.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", tableWidth)
+                .attr("height", tableHeight)
+                .attr("fill", "none")
+                .attr("stroke", category.color)
+                .attr("stroke-width", 2);
+
+            // Table heading
+            tableGroup.append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", tableWidth)
+                .attr("height", headingHeight)
+                .attr("stroke", category.color)
+                .attr("fill", category.color);
+
+            tableGroup.append("text")
+                .attr("x", tableWidth / 2)
+                .attr("y", headingHeight / 2 + 5) // Center the text vertically
+                .attr("text-anchor", "middle")
+                .attr("font-size", "16px")
+                .attr("fill", "white")
+                .attr("background-color", category.color) // for hover
+                .text(category.title);
+
+            // Table rows
+            category.data.forEach((entry, rowIndex) => {
+                const rowY = headingHeight + rowIndex * rowHeight;
+
+                // Start time column
+                tableGroup.append("text")
+                    .attr("x", (entry.startTime && entry.endTime) ? 10 : 34)
+                    .attr("y", rowY + rowHeight / 2 + 5)
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .attr("background-color", category.color) // for hover
+                    .text(entry.startTime);
+
+                // Middle dash
+                tableGroup.append("text")
+                    .attr("x", 49)
+                    .attr("y", rowY + rowHeight / 2 + 5)
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .attr("background-color", category.color) // for hover
+                    .text((entry.startTime && entry.endTime) ? "-" : "");
+
+                // End time column
+                tableGroup.append("text")
+                    .attr("x", 58)
+                    .attr("y", rowY + rowHeight / 2 + 5)
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .attr("background-color", category.color) // for hover
+                    .text((entry.startTime || entry.endTime) ? (entry.endTime || "") : "");
+
+                // Description column
+                tableGroup.append("text")
+                    .attr("x", 100)
+                    .attr("y", rowY + rowHeight / 2 + 5)
+                    .attr("text-anchor", "start")
+                    .attr("font-size", "14px")
+                    .attr("fill", "black")
+                    .attr("background-color", category.color) // for hover
+                    .text(entry.text);
+
+                if (entry.text == "Olney Pancake Race starts") {
+                    tableGroup.append("image")
+                        .attr("x", 260)
+                        .attr("y", 65)
+                        .attr("height", 30)
+                        .attr("width", 30)
+                        .attr("href", "start-flag.svg")
+                        .attr("background-color", category.color); // for hover
+                }
+                if (entry.text == "Olney Pancake Race finishes") {
+                    tableGroup.append("image")
+                        .attr("x", 280)
+                        .attr("y", 88)
+                        .attr("height", 20)
+                        .attr("width", 20)
+                        .attr("href", "end-flag.svg")
+                        .attr("background-color", category.color);
+                }
+            });
+
+            // Update Y position for the next table
+            yPos += tableHeight + spacing;
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // ARROWS ON PATH
+
+        const arrowSize = 10; // The width and height of the arrow
+        const arrowOffsetX = arrowSize / 2; // Offset to center the arrow
+        const arrowOffsetY = arrowSize / 2;
+
+        // Iterate over the markersOnPath array and append arrows
+        arrowsOnPath.forEach(arrow => {
+            svg.append("text")
+                .attr("x", arrow.x - arrowOffsetX) // Center align horizontally
+                .attr("y", arrow.y + arrowOffsetY) // Center align vertically
+                .attr("text-anchor", "middle") // Center the text
+                .attr("font-size", "16px") // Adjust size
+                .attr("fill", "black") // Arrow color
+                .attr("transform", `rotate(${arrow.tilt}, ${arrow.x}, ${arrow.y})`) // Rotate the arrow
+                .style("stroke", "black")
+                .style("stroke-width", 1) // Stroke width
+                .text("\u25B6")
+                .attr("opacity", 0)
+                .transition() // Initialize transition
+                .delay((arrow.x - arrowOffsetX) * 2) // Add delay for sequential appearance
+                .duration(1000) // Animation duration in milliseconds
+                .attr("opacity", 1); // Fade to fully visible
+        });
+    </script>
+</body>
+
+</html>

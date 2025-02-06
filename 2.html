@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olney vs Liberal Winners</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            pointer-events: none;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+        }
+
+        .bar {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            transform-origin: bottom;
+        }
+
+        .bar:hover {
+            filter: brightness(1.1);
+        }
+
+        .legend {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        text {
+            fill: #2c3e50;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            fill: #2c3e50;
+        }
+
+        .axis-label {
+            font-size: 14px;
+            fill: #2c3e50;
+        }
+
+        .x-axis line,
+        .x-axis path {
+            stroke: #2c3e50;
+            stroke-width: 1px;
+        }
+
+        .x-axis text {
+            font-size: 12px;
+            fill: #2c3e50;
+            transform: rotate(-45deg);
+            text-anchor: end;
+        }
+
+        .y-axis text {
+            font-size: 12px;
+            fill: #2c3e50;
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="1200" height="600"></svg>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = [
+                { year: 2024, type: 'L', olney: "Kaisa Larkas", liberal: "Pamela Bolivar" },
+                { year: 2023, type: 'O', olney: "Eloise Kramer", liberal: "Isabelle Sullenger" },
+                { year: 2022, type: 'L', olney: "Katie Godof", liberal: "Whitney Hay" },
+                { year: 2020, type: 'O', olney: "Katie Godof", liberal: "Whitney Hay" },
+                { year: 2019, type: 'L', olney: "Amy Butler", liberal: "Maggie Lapinski" },
+                { year: 2018, type: 'L', olney: "Katie Godof", liberal: "Gabbie Covarrubias" },
+                { year: 2017, type: '', olney: "Kaisa Larkas", liberal: "Maggie Lapinski" },
+                { year: 2016, type: 'O', olney: "Lianne Fisher", liberal: "Summer Parsons" },
+                { year: 2015, type: 'L', olney: "Emma Maitland", liberal: "Hannah Belron" },
+                { year: 2014, type: 'O', olney: "Devon Byrne", liberal: "Summer Parsons" },
+                { year: 2013, type: 'O', olney: "Devon Byrne", liberal: "Caitlin Demarest" },
+                { year: 2012, type: 'O', olney: "Devon Byrne", liberal: "Kaela Kruegar" },
+                { year: 2011, type: 'L', olney: "Nicky Sallis", liberal: "Nicole Schowengerdt" },
+                { year: 2010, type: 'L', olney: "Jane Hughes", liberal: "Cheri Bevis" },
+                { year: 2009, type: 'L', olney: "Jane Hughes", liberal: "Natasha Gallegos" },
+                { year: 2008, type: 'L', olney: "Amanda Brear", liberal: "Amanda Curtis" },
+                { year: 2007, type: 'L', olney: "Jane Hughes", liberal: "Jessica Lash" },
+                { year: 2006, type: 'O', olney: "Andrea Rawlings", liberal: "Erin Lowan" },
+                { year: 2005, type: 'L', olney: "Andrea Rawlings", liberal: "Jill Wetstein" },
+                { year: 2004, type: 'L', olney: "Andrea Rawlings", liberal: "Cheri Bevis" },
+                { year: 2003, type: 'L', olney: "Juliette Minter", liberal: "Cheri Bevis" },
+                { year: 2002, type: 'L', olney: "Juliette Minter", liberal: "Melissa Hurla" },
+                { year: 2001, type: 'L', olney: "Juliette Minter", liberal: "Lisa Spellman" },
+                { year: 2000, type: 'L', olney: "Avril Soman", liberal: "Lisa Spellman" },
+                { year: 1999, type: 'L', olney: "Natalie Thomas", liberal: "Lisa Spellman" },
+                { year: 1998, type: 'O', olney: "Natalie Thomas", liberal: "Christy Riffel" },
+                { year: 1997, type: 'L', olney: "Avril Soman", liberal: "Christina Wilbers" },
+                { year: 1996, type: 'O', olney: "Dawn Galyot", liberal: "Christina Wilbers" },
+                { year: 1995, type: 'O', olney: "Jackie Bowden", liberal: "Lou Ann Barker" },
+                { year: 1994, type: 'O', olney: "Claire Whittle", liberal: "Lisa Biddle" },
+                { year: 1993, type: 'L', olney: "Lesley Byrne", liberal: "Mindy Amerin" },
+                { year: 1992, type: 'L', olney: "Susan Jones", liberal: "Vicky van Sickle" },
+                { year: 1991, type: 'O', olney: "Alison Steele", liberal: "Carla Patterson" },
+                { year: 1990, type: 'L', olney: "Alison Steele", liberal: "Carla Patterson" },
+                { year: 1989, type: 'O', olney: "Lesley Byrne", liberal: "Donnetta Schindler" },
+                { year: 1988, type: 'O', olney: "Lesley Byrne", liberal: "Marcia Streiff" },
+                { year: 1987, type: 'O', olney: "Elizabeth Bartlett", liberal: "Marcia Streiff" },
+                { year: 1986, type: 'O', olney: "Elizabeth Bartlett", liberal: "Shelley Welsh" },
+                { year: 1985, type: 'O', olney: "Sally Swallow", liberal: "Marcia Streiff" },
+                { year: 1984, type: 'O', olney: "Louise Fitzgerald", liberal: "Mona Canaday" },
+                { year: 1983, type: 'O', olney: "Linda Carey", liberal: "Joyce Heeb" },
+                { year: 1982, type: 'L', olney: "Rosemary Ludgate", liberal: "Barbara McCaffery" },
+                { year: 1981, type: 'O', olney: "Rosemary Ludgate", liberal: "Gillian Brewer" },
+                { year: 1980, type: '', olney: "R Ludgate,S Smith", liberal: "Sheila Turner" },
+                { year: 1979, type: 'O', olney: "Julie Perks", liberal: "Barbara McWilliams" },
+                { year: 1978, type: 'L', olney: "June Strauthum", liberal: "Stephanie Wagner" },
+                { year: 1977, type: 'L', olney: "Sallyann Faulkner", liberal: "Mary Bender" },
+                { year: 1976, type: 'L', olney: "Susan Hillier", liberal: "Sheila Turner" },
+                { year: 1975, type: 'L', olney: "Sallyann Faulkner", liberal: "Sheila Turner" },
+                { year: 1974, type: 'L', olney: "Sallyann Faulkner", liberal: "Patricia Cheeks" },
+                { year: 1973, type: 'L', olney: "Ella Crouch", liberal: "Pat Clark" },
+                { year: 1972, type: 'L', olney: "Ella Crouch", liberal: "Kathleen West" },
+                { year: 1971, type: 'L', olney: "Ruth Faulkner", liberal: "Barbara Rinehart" },
+                { year: 1970, type: 'L', olney: "Sylvia Winstanley", liberal: "Kathleen West" },
+                { year: 1969, type: 'O', olney: "Sylvia Winstanley", liberal: "Raneta Pomroy" },
+                { year: 1968, type: 'O', olney: "Mary Dix", liberal: "Janice Grant" },
+                { year: 1967, type: 'O', olney: "Janet Bunker", liberal: "Lynda Fox" },
+                { year: 1966, type: 'L', olney: "Janet Bunker", liberal: "Rachel Crites" },
+                { year: 1965, type: 'L', olney: "Jennifer Andrews", liberal: "Grace Riggs" },
+                { year: 1964, type: 'O', olney: "Bridget Lowrie", liberal: "Grace Kostreva" },
+                { year: 1963, type: 'L', olney: "Linda Risby", liberal: "Mary Barrington" },
+                { year: 1962, type: 'O', olney: "Carol Vorley", liberal: "Vicky Campbell" },
+                { year: 1961, type: 'L', olney: "Carol Vorley", liberal: "Carolyn McGlamery" },
+                { year: 1960, type: 'O', olney: "Carol Vorley", liberal: "Anne Hueter" },
+                { year: 1959, type: 'L', olney: "Bridget Lowrie", liberal: "Mary Collingwood" },
+                { year: 1958, type: 'O', olney: "Sandra Sibley", liberal: "Mary Collingwood" },
+                { year: 1957, type: 'O', olney: "Sandra Sibley", liberal: "Mary Collingwood" },
+                { year: 1956, type: 'L', olney: "Cicely Sparrow", liberal: "Nina Jordan" },
+                { year: 1955, type: 'L', olney: "Doris Milward", liberal: "Binnie Dick" },
+                { year: 1954, type: 'L', olney: "Joan Keech", liberal: "Binnie Dick" },
+                { year: 1953, type: 'O', olney: "Isabella Dix", liberal: "Binnie Dick" },
+                { year: 1952, type: 'L', olney: "Isabella Dix", liberal: "Joan Zimmerman" },
+                { year: 1951, type: 'O', olney: "Isabella Dix", liberal: "Emagene Bruce" },
+                { year: 1950, type: 'O', olney: "Florence Callow", liberal: "Billie Warden" }
+            ];
+
+            const margin = { top: 60, right: 120, bottom: 100, left: 120 },
+                width = 1200 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
+
+            const svg = d3.select("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", `translate(${margin.left}, ${margin.top})`);
+            // Add gradient definitions
+            const defs = svg.append("defs");
+
+            const gradientOlney = defs.append("linearGradient")
+                .attr("id", "gradientOlney")
+                .attr("x1", "0%").attr("y1", "0%")
+                .attr("x2", "0%").attr("y2", "100%");
+            gradientOlney.append("stop").attr("offset", "0%").attr("stop-color", "#FF6B6B");
+            gradientOlney.append("stop").attr("offset", "100%").attr("stop-color", "#ee5253");
+
+            const gradientLiberal = defs.append("linearGradient")
+                .attr("id", "gradientLiberal")
+                .attr("x1", "0%").attr("y1", "0%")
+                .attr("x2", "0%").attr("y2", "100%");
+            gradientLiberal.append("stop").attr("offset", "0%").attr("stop-color", "#4ECDC4");
+            gradientLiberal.append("stop").attr("offset", "100%").attr("stop-color", "#45B7AF");
+
+            const x0 = d3.scaleBand()
+                .domain(data.map(d => d.year))
+                .range([0, width])
+                .padding(0.2);
+
+            const x1 = d3.scaleBand()
+                .domain(["Olney", "Liberal"])
+                .range([0, x0.bandwidth()])
+                .padding(0.05);
+
+            // y-scale for bidirectional bars
+            const y = d3.scaleLinear()
+                .domain([-2, 2])  // Extended domain for both directions
+                .range([height, 0]);
+
+            const color = d3.scaleOrdinal()
+                .domain(["Olney", "Liberal"])
+                .range(["url(#gradientOlney)", "url(#gradientLiberal)"]);
+
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
+
+            const barGroup = svg.append("g")
+                .selectAll("g")
+                .data(data)
+                .join("g")
+                .attr("transform", d => `translate(${x0(d.year)}, 0)`);
+
+            const bars = barGroup.selectAll("rect")
+                .data(d => [
+                    {
+                        key: "Olney",
+                        value: d.type === "" ? 1 : (d.type === "O" ? 2 : d.type === "L" ? 1 : 0),
+                        label: d.olney,
+                        year: d.year
+                    },
+                    {
+                        key: "Liberal",
+                        value: d.type === "" ? -1 : (d.type === "L" ? -2 : d.type === "O" ? -1 : 0),
+                        label: d.liberal,
+                        year: d.year
+                    }
+                ])
+                .join("rect")
+                .attr("class", "bar")
+                .attr("x", d => x1(d.key))
+                .attr("y", y(0))  // Start from center
+                .attr("width", x1.bandwidth())
+                .attr("height", 0)
+                .attr("fill", d => color(d.key))
+                .attr("rx", 4)
+                .attr("ry", 4)
+                .on("mouseover", function (event, d) {
+                    tooltip.transition().duration(200).style("opacity", 0.9);
+                    tooltip.html(`${d.label} (${d.year})`)
+                        .style("left", `${event.pageX + 5}px`)
+                        .style("top", `${event.pageY - 28}px`);
+                })
+                .on("mouseout", function () {
+                    tooltip.transition().duration(500).style("opacity", 0);
+                })
+                .transition()
+                .duration(1000)
+                .delay((d, i) => {
+                    const baseDelay = d.year >= 2017 ? (2024 - d.year) * 200 : 0;
+                    return baseDelay + (d.key === "Liberal" ? 100 : 0);
+                })
+                .ease(d3.easeBounceOut)
+                .attr("y", d => Math.min(y(d.value), y(0)))
+                .attr("height", d => Math.abs(y(d.value) - y(0)));
+
+            // y-axis with bidirectional labels
+            const yAxis = svg.append("g")
+                .attr("class", "y-axis")
+                .call(d3.axisLeft(y)
+                    .tickValues([-2, -1, 0, 1, 2])
+                    .tickFormat(d => d === 0 ? "0" : `${Math.abs(d)}`)
+                )
+                .style("opacity", 0)
+                .transition()
+                .duration(1000)
+                .style("opacity", 1);
+
+            // Animated legend
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${width + 10}, 20)`)
+                .style("opacity", 0)
+                .transition()
+                .duration(1000)
+                .style("opacity", 1);
+
+            ["Olney", "Liberal"].forEach((key, i) => {
+                const legendRow = svg.append("g")
+                    .attr("transform", `translate(${width + 10}, ${i * 25})`);
+
+                legendRow.append("rect")
+                    .attr("width", 15)
+                    .attr("height", 15)
+                    .attr("fill", color(key))
+                    .attr("rx", 2)
+                    .attr("ry", 2);
+
+                legendRow.append("text")
+                    .attr("x", 25)
+                    .attr("y", 12)
+                    .text(key);
+            });
+
+            // Animated title
+            svg.append("text")
+                .attr("class", "title")
+                .attr("x", width / 2)
+                .attr("y", -20)
+                .attr("text-anchor", "middle")
+                .style("opacity", 0)
+                .text("Olney vs Liberal Winners (1950-2024)")
+                .transition()
+                .duration(1000)
+                .style("opacity", 1);
+        });
+    </script>
+</body>
+
+</html>
